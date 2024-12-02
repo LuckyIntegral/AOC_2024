@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import argparse
 import time
+import sys
 import os
 
 
@@ -128,7 +129,7 @@ class AdventOfCode:
 
     def run_solution(self):
         '''Runs the subprocess'''
-        output = os.popen(f'python3.11 {self.year}/day{self.day}/main.py').readlines()
+        output = os.popen(f'{sys.executable} {self.year}/day{self.day}/main.py').readlines()
         for line in output:
             line = line.strip()
             print(line)
@@ -166,6 +167,8 @@ class AdventOfCode:
             print('\nBye')
         except KeyboardInterrupt:
             print('\nBye')
+        except Exception as e:
+            print(e.with_traceback())
 
 
 def parse_args():
