@@ -1,28 +1,28 @@
 import os
 
 
-INPUT_FILE = 'input.txt'
-TEST_FILE = 'test.txt'
+INPUT_FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
+TEST_FILE = os.path.join(os.path.dirname(__file__), 'test.txt')
 
 def content() -> list[str]:
     '''Reads the input file and returns a list of strings'''
-    with open(INPUT_FILE) as f:
-        lines = f.readlines()
-    lines = [line.strip() for line in lines]
+    def read_file(file: str) -> list[str]:
+        if not os.path.exists(file):
+            print(f"File {file} not found")
+            exit(1)
+        with open(file) as f:
+            lines = f.readlines()
+        return [line.strip() for line in lines]
 
-    if not os.path.exists(TEST_FILE):
-        return lines, []
-
-    with open(TEST_FILE) as f:
-        test = f.readlines()
-    test = [line.strip() for line in test]
-
-    return lines, test
+    return read_file(INPUT_FILE), read_file(TEST_FILE)
 
 
 def parse_data(lines: list[str]) -> any:
     '''Parses the data'''
-    return lines
+    res = []
+    for line in lines:
+        res.append(line)
+    return res
 
 
 def silver(lines: list[str]) -> int:
@@ -40,9 +40,8 @@ def gold(lines: list[str]) -> int:
 def main():
     '''Parses the input and solves the two problems'''
     lines, test = content()
-    if test:
-        print(f"Silver test: {silver(test)}")
-        print(f"Gold test:   {gold(test)}")
+    print(f"Silver test: {silver(test)}")
+    print(f"Gold test:   {gold(test)}")
     print(f"Silver:      {silver(lines)}")
     print(f"Gold:        {gold(lines)}")
 
