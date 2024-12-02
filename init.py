@@ -19,7 +19,7 @@ class AdventOfCode:
         self.day = day
         self.cookies = session_id
         self.start = time.time()
-        self.submittions = []
+        self.submissions = []
         self.silver = None
         self.golden = None
 
@@ -27,8 +27,8 @@ class AdventOfCode:
     def __del__(self):
         '''Destructor'''
         print(f"Time passed: {time.time() - self.start:.2f} seconds")
-        print("Submittions:")
-        for timestamp, status in self.submittions:
+        print("Submissions:")
+        for timestamp, status in self.submissions:
             print(f"{time.time() - timestamp:.2f}: {status}")
 
 
@@ -57,20 +57,20 @@ class AdventOfCode:
         content = response.content.decode()
         if "That's the right answer!" in content:
             print("Correct answer")
-            self.submittions.append((time.time(), f'Correct solution for part {part}'))
+            self.submissions.append((time.time(), f'Correct solution for part {part}'))
         elif "That's not the right answer" in content:
             print("Wrong answer: your answer is", content.split("your answer is ")[1].split(".", 1)[0])
-            self.submittions.append((time.time(), f'Wrong solution for part {part}'))
+            self.submissions.append((time.time(), f'Wrong solution for part {part}'))
         elif "To play, please identify yourself" in content:
             print("Cookie expired")
-            self.submittions.append((time.time(), f'Cookie expired before submitting part {part}'))
+            self.submissions.append((time.time(), f'Cookie expired before submitting part {part}'))
         elif "You gave an answer too recently" in content:
             print("You gave an answer too recently")
-            self.submittions.append((time.time(), f'Timeout before submitting part {part}'))
+            self.submissions.append((time.time(), f'Timeout before submitting part {part}'))
         else:
             print("Unexpected response:")
             print(content)
-            self.submittions.append((time.time(), f'Unexpected response for part {part}'))
+            self.submissions.append((time.time(), f'Unexpected response for part {part}'))
 
 
     def get_input(self) -> str:
