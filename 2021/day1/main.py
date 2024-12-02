@@ -1,56 +1,49 @@
-from collections import defaultdict as dd
 import os
 
 
+INPUT_FILE = 'input.txt'
+TEST_FILE = 'test.txt'
+
 def content() -> list[str]:
     '''Reads the input file and returns a list of strings'''
-    with open('input.txt') as f:
+    with open(INPUT_FILE) as f:
         lines = f.readlines()
     lines = [line.strip() for line in lines]
 
-    if not os.path.exists('test.txt'):
+    if not os.path.exists(TEST_FILE):
         return lines, []
 
-    with open('test.txt') as f:
+    with open(TEST_FILE) as f:
         test = f.readlines()
     test = [line.strip() for line in test]
 
     return lines, test
 
 
-def parse_data(lines: list[str]) -> tuple[list[int], list[int]]:
+def parse_data(lines: list[str]) -> any:
     '''Parses the data'''
-    l, r = [], []
-
-    for line in lines:
-        n = line.strip().split('  ')
-        l.append(int(n[0]))
-        r.append(int(n[1]))
-
-    return l, r
+    return list(map(int, lines))
 
 
 def silver(lines: list[str]) -> int:
     '''Solves the silver problem'''
-    l, r = parse_data(lines)
-
-    l.sort()
-    r.sort()
-
-    return sum(abs(a - b) for a, b in zip(l, r))
+    data = parse_data(lines)
+    prev = data[0]
+    ans = 0
+    for n in data:
+        if n > prev:
+            ans += 1
+        prev = n
+    return ans
 
 
 def gold(lines: list[str]) -> int:
     '''Solves the gold problem'''
-    counter = dd(int)
-    l = []
-
-    for line in lines:
-        n = line.strip().split('  ')
-        l.append(int(n[0]))
-        counter[int(n[1])] += 1
-
-    return sum(n * counter[n] for n in l)
+    data = parse_data(lines)
+    new = []
+    for i in range(len(data) - 2):
+        new.append(sum(data[i:i+3]))
+    return silver(new)
 
 
 def main():
