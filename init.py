@@ -84,7 +84,7 @@ class AdventOfCode:
             )
             self.write_cache(f'{self.year}-{self.day}-{part}={answer}')
         elif "That's not the right answer" in content:
-            print("Wrong answer: your answer is", content.split("your answer is ")[1].split(".", 1)[0])
+            print(f"Wrong answer: your answer is {answer}")
             self.submissions.append(
                 (time.time(), f'Wrong solution for part {part}')
             )
@@ -177,6 +177,7 @@ class AdventOfCode:
         print('p: print the solution')
         print('s: submit the first solution (silver star)')
         print('g: submit the second solution (golden star)')
+        print('c: clear the screen')
 
         try:
             while True:
@@ -193,6 +194,8 @@ class AdventOfCode:
                         print('Run the solution first')
                         self.run_solution()
                     self.submit('2', str(self.golden))
+                elif user == 'c':
+                    os.system('clear')
                 else:
                     print('Invalid option')
         except EOFError:
