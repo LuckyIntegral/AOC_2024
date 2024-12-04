@@ -34,7 +34,7 @@ class AdventOfCode:
         print(f"Time passed: {stringify(time.time() - self.start)} seconds")
         print("Submissions:")
         for timestamp, status in self.submissions:
-            print(f"{stringify(time.time() - timestamp)}: {status}")
+            print(f"{stringify(timestamp - self.start)}: {status}")
 
     def lookup_cache(self, key: str) -> bool:
         '''Looks up the cache for the key'''
