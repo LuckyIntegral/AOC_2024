@@ -159,22 +159,27 @@ class AdventOfCode:
         self.optional_write(f'{self.year}/day{self.day}/input.txt', input_file)
         self.optional_write(f'{self.year}/day{self.day}/test.txt', test_file)
 
-    def run_solution(self):
-        '''Runs the subprocess'''
+    def run_solution(self, debug: bool = False):
+        '''Runs the subprocess
+        debug: runs the test samples only
+        '''
         command = f'{sys.executable} {self.year}/day{self.day}/main.py'
+        if debug:
+            command += ' --debug'
         output = os.popen(command).readlines()
         for line in output:
             line = line.strip()
             print(line)
-            if 'Silver' in line:
+            if 'Silver:' in line:
                 self.silver = int(line.split()[-1])
-            elif 'Gold' in line:
+            elif 'Gold:' in line:
                 self.golden = int(line.split()[-1])
 
     def interactive(self):
         '''Interacts with the user'''
         print('Options:')
         print('p: print the solution')
+        print('d: debug the solution (run the test samples only)')
         print('s: submit the first solution (silver star)')
         print('g: submit the second solution (golden star)')
         print('c: clear the screen')
@@ -194,6 +199,8 @@ class AdventOfCode:
                         print('Run the solution first')
                         self.run_solution()
                     self.submit('2', str(self.golden))
+                elif user == 'd':
+                    self.run_solution(debug=True)
                 elif user == 'c':
                     os.system('clear')
                 else:

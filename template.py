@@ -1,3 +1,4 @@
+import argparse
 import os
 
 
@@ -37,11 +38,26 @@ def gold(lines: list[str]) -> int:
     return 0
 
 
+def parse_args():
+    '''Parses the arguments'''
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d",
+        "--debug",
+        help="run the test samples only",
+        action="store_true"
+    )
+    return parser.parse_args()
+
+
 def main():
     '''Parses the input and solves the two problems'''
     lines, test = content()
+    options = parse_args()
     print(f"Silver test: {silver(test)}")
     print(f"Gold test:   {gold(test)}")
+    if options.debug:
+        return
     print(f"Silver:      {silver(lines)}")
     print(f"Gold:        {gold(lines)}")
 
