@@ -22,20 +22,53 @@ def parse_data(lines: list[str]) -> any:
     '''Parses the data'''
     res = []
     for line in lines:
+        line = line.split(":")
+        line[0] = int(line[0])
+        line[1] = list(map(int, line[1].strip().split(" ")))
         res.append(line)
     return res
 
 
 def silver(lines: list[str]) -> int:
     '''Solves the silver problem'''
+    def dfs(final_res, res, nums, operation):
+        if not nums:
+            return res == final_res
+        buffer = res + nums[0] if operation == "+" else res * nums[0]
+        for op in ops:
+            if dfs(final_res, buffer, nums[1:], op):
+                return True
+        return False
+
     data = parse_data(lines)
-    return 0
+    ops = ['+', '*']
+    ans = 0
+
+    for res, nums in data:
+        if any(dfs(res, nums[0], nums[1:], op) for op in ops):
+            ans += res
+    return ans
 
 
 def gold(lines: list[str]) -> int:
     '''Solves the gold problem'''
+    def dfs(final_res, res, nums, operation):
+        if not nums:
+            return res == final_res
+        buffer = res + nums[0] if operation == "+" else res * nums[0] if operation == "*" else int(str(res) + str(nums[0]))
+        for op in ops:
+            if dfs(final_res, buffer, nums[1:], op):
+                return True
+        return False
+
     data = parse_data(lines)
-    return 0
+    ops = ['+', '*', '|']
+    ans = 0
+
+    for res, nums in data:
+        if any(dfs(res, nums[0], nums[1:], op) for op in ops):
+            ans += res
+    return ans
 
 
 def parse_args():
