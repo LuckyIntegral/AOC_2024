@@ -1,9 +1,13 @@
 import argparse
+import sys
 import os
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from lib import lib
 
 INPUT_FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
 TEST_FILE = os.path.join(os.path.dirname(__file__), 'test.txt')
+
 
 def content() -> list[str]:
     '''Reads the input file and returns a list of strings'''
