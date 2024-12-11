@@ -1,6 +1,9 @@
 import argparse
+import sys
 import os
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from lib import lib
 
 INPUT_FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
 TEST_FILE = os.path.join(os.path.dirname(__file__), 'test.txt')
@@ -28,58 +31,14 @@ def parse_data(lines: list[str]) -> any:
 
 def silver(lines: list[str]) -> int:
     '''Solves the silver problem'''
-    def dfs(row, col, iter) -> list:
-        if 0 <= row < len(data) and 0 <= col < len(data[0]) and data[row][col] == f'{iter}':
-            if seen[row][col]:
-                return []
-            seen[row][col] = True
-            if iter == 9:
-                if data[row][col] == '9':
-                    return [[row, col]]
-                return []
-            res = []
-            for rr, cc in direction:
-                res += dfs(row + rr, col + cc, iter + 1)
-            return res
-        return []
-
-
     data = parse_data(lines)
-    direction = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    ans = 0
-
-    for row, line in enumerate(data):
-        for col, char in enumerate(line):
-            if char == '0':
-                seen = [[False for _ in range(len(data[0]))] for _ in range(len(data))]
-                ans += len(dfs(row, col, 0))
-    return ans
+    return len(lib.grid_dfs(data, '0123456789', hashing = True))
 
 
 def gold(lines: list[str]) -> int:
     '''Solves the gold problem'''
-    def dfs(row, col, iter) -> list:
-        if 0 <= row < len(data) and 0 <= col < len(data[0]) and data[row][col] == f'{iter}':
-            if iter == 9:
-                if data[row][col] == '9':
-                    return [[row, col]]
-                return []
-            res = []
-            for rr, cc in direction:
-                res += dfs(row + rr, col + cc, iter + 1)
-            return res
-        return []
-
-
     data = parse_data(lines)
-    direction = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    ans = 0
-
-    for row, line in enumerate(data):
-        for col, char in enumerate(line):
-            if char == '0':
-                ans += len(dfs(row, col, 0))
-    return ans
+    return len(lib.grid_dfs(data, '0123456789', hashing = False))
 
 
 def parse_args():
