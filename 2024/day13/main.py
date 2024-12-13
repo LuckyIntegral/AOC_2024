@@ -52,23 +52,16 @@ def silver(lines: list[str]) -> int:
     data = parse_data(lines)
     ans = 0
     for game in data:
-        coef = (game[2][0] // game[0][0]) + 1
-        total = [coef * game[0][0], coef * game[0][1]]
-        tokens = [coef * 3, 0]
-        if game[2][1] - total[1] > 0:
-            coef = ((game[2][1] - total[1]) // game[0][1]) + 1
-        while tokens[0] > 0:
-            total[0] -= game[0][0]
-            total[1] -= game[0][1]
-            tokens[0] -= 3
-            while total[0] < game[2][0] or total[1] < game[2][1]:
-                tokens[1] += 1
-                total[0] += game[1][0]
-                total[1] += game[1][1]
-            if total[0] == game[2][0] and total[1] == game[2][1]:
-                if tokens[0] < 300 and tokens[1] < 100:
-                    ans += sum(tokens)
-                break
+        ax, ay = game[0]
+        bx, by = game[1]
+        cx, cy = game[2]
+        # x * ax + y * bx = cx
+        # x * ay + y * by = cy
+        # x, y - unknown numbers of pressed buttons x and y respectively
+        x = int(((by * cx) - (bx * cy)) / ((ax * by) - (ay * bx)))
+        y = int((cy - (x * ay)) / by)
+        if x * ax + y * bx == cx and x * ay + y * by == cy:
+            ans += x * 3 + y
 
     return ans
 
@@ -76,9 +69,21 @@ def silver(lines: list[str]) -> int:
 def gold(lines: list[str]) -> int:
     '''Solves the gold problem'''
     data = parse_data(lines)
+    ans = 0
+    for game in data:
+        ax, ay = game[0]
+        bx, by = game[1]
+        cx, cy = game[2]
+        cx, cy = cx + 10000000000000, cy + 10000000000000
+        # x * ax + y * bx = cx
+        # x * ay + y * by = cy
+        # x, y - unknown numbers of pressed buttons x and y respectively
+        x = int(((by * cx) - (bx * cy)) / ((ax * by) - (ay * bx)))
+        y = int((cy - (x * ay)) / by)
+        if x * ax + y * bx == cx and x * ay + y * by == cy:
+            ans += x * 3 + y
 
-
-    return 0
+    return ans
 
 
 def parse_args():
