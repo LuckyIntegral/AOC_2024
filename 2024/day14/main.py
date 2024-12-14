@@ -35,23 +35,21 @@ def parse_data(lines: list[str]) -> any:
 def silver(lines: list[str], size) -> int:
     '''Solves the silver problem'''
     data = parse_data(lines)
-    found = False
     for r in data:
         r[0] = (r[0] + 100 * r[2]) % size[0]
         r[1] = (r[1] + 100 * r[3]) % size[1]
 
-
-    squares = [0,0,0,0]
+    squares = [0] * 4
     for r in data:
         if r[0] < size[0] // 2:
             if r[1] < size[1] // 2:
                 squares[0] += 1
-            elif r[1] >= size[1] // 2 + 1:
+            elif r[1] > size[1] // 2:
                 squares[1] += 1
-        elif r[0] >= size[0] // 2 + 1:
+        elif r[0] > size[0] // 2:
             if r[1] < size[1] // 2:
                 squares[2] += 1
-            elif r[1] >= size[1] // 2 + 1:
+            elif r[1] > size[1] // 2:
                 squares[3] += 1
     return reduce(lambda x, y: x * y, squares)
 
@@ -59,9 +57,7 @@ def silver(lines: list[str], size) -> int:
 def gold(lines: list[str], size) -> int:
     '''Solves the gold problem'''
     data = parse_data(lines)
-    found = False
-    ans = 0
-    for i in range(1, 10000):
+    for iteration in range(1, 10000):
         for r in data:
             r[0] = (r[0] + r[2]) % size[0]
             r[1] = (r[1] + r[3]) % size[1]
@@ -70,15 +66,9 @@ def gold(lines: list[str], size) -> int:
         for r in data:
             d[r[1]][r[0]] = '#'
         for row in d:
-            if ''.join(row).find('#########') != -1:
-                found = True
-                break
-        if found:
-            ans = i
-            break
-    # for line in d:
-    #     print(''.join(line))
-    return ans
+            if ''.join(row).find('#####################') != -1:
+                return iteration
+    return -1 # Increase the number of iterations to find the answer
 
 
 def parse_args():
