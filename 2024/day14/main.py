@@ -56,19 +56,29 @@ def silver(lines: list[str], size) -> int:
 
 def gold(lines: list[str], size) -> int:
     '''Solves the gold problem'''
+    def count_connections(nodes):
+        nodes = 0
+        for x, y in positions:
+            for xx, cc in lib.DIRS:
+                if (x+xx, y+cc) in positions:
+                    nodes += 1
+        return nodes
+
     data = parse_data(lines)
-    for iteration in range(1, 10000):
+    max_var = (0, 0)
+    for iteration in range(1, size[0] * size[1]):
+        positions = set()
         for r in data:
             r[0] = (r[0] + r[2]) % size[0]
             r[1] = (r[1] + r[3]) % size[1]
+            positions.add((r[0], r[1]))
 
-        d = [['.'] * size[0] for _ in range(size[1])]
-        for r in data:
-            d[r[1]][r[0]] = '#'
-        for row in d:
-            if ''.join(row).find('#####################') != -1:
-                return iteration
-    return -1 # Increase the number of iterations to find the answer
+        nodes = count_connections(positions)
+
+        if nodes > max_var[1]:
+            max_var = (iteration, nodes)
+
+    return max_var[0]
 
 
 def parse_args():
