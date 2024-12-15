@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+from functools import wraps
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from lib import lib
@@ -35,235 +36,134 @@ def parse_data(lines: list[str]) -> any:
     return res, moves
 
 
-def find_robot(maze: list[str], to_find: str) -> tuple[int, int]:
-    '''Finds the robot in the maze'''
-    for row, line in enumerate(maze):
-        for col, char in enumerate(line):
-            if char == to_find:
-                return row, col
-    return -1, -1
+def grid_rotation_wrapper(func):
+    @wraps(func)
+    def wrapper(maze: list[str], dirr: str, *args, **kwargs):
+        match dirr:
+            case '^':
+                maze = lib.grid_rotate(maze)
+                maze = lib.grid_rotate(maze)
+                maze = lib.grid_rotate(maze)
+            case 'v':
+                maze = lib.grid_rotate(maze)
+            case '>':
+                maze = lib.grid_rotate(maze)
+                maze = lib.grid_rotate(maze)
 
+        result = func(maze, dirr, *args, **kwargs)
 
-def rotate_box_right(maze: list[list[str]]) -> list[list[str]]:
-    '''Rotates the box in the maze by 90 degrees'''
-    new = [[] for _ in range(len(maze[0]))]
-
-    for line in maze[::-1]:
-        for col, char in enumerate(line):
-            new[col].append(char)
-    return new
+        match dirr:
+            case '^':
+                result = lib.grid_rotate(result)
+            case 'v':
+                result = lib.grid_rotate(result)
+                result = lib.grid_rotate(result)
+                result = lib.grid_rotate(result)
+            case '>':
+                result = lib.grid_rotate(result)
+                result = lib.grid_rotate(result)
+        return result
+    return wrapper
 
 
 def silver(lines: list[str]) -> int:
     '''Solves the silver problem'''
-    def move_box(maze: list[str], dirr: str) -> None:
-        match dirr:
-            case '^':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case 'v':
-                maze = rotate_box_right(maze)
-            case '>':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case '<':
-                pass
-
-        r, c = find_robot(maze, '@')
+    @grid_rotation_wrapper
+    def move_box(maze: list[str], _: str) -> None:
+        r, c = lib.grid_find(maze, '@')
         ll = 1
-
         while maze[r][c - ll] == 'O':
             ll += 1
         if maze[r][c - ll] == '.':
             maze[r][c - ll] = 'O'
             maze[r][c - 1] = '@'
             maze[r][c] = '.'
-
-        match dirr:
-            case '^':
-                maze = rotate_box_right(maze)
-            case 'v':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case '>':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case '<':
-                pass
         return maze
+
     maze, moves = parse_data(lines)
-    maze = [list(line) for line in maze for line in line]
+    maze = [list(line) for line in maze[0]]
     moves = ''.join(moves)
-    dirs = {
-        '<': (0, -1),
-        '>': (0, 1),
-        '^': (-1, 0),
-        'v': (1, 0)
-    }
 
     for char in moves:
-        r, c = find_robot(maze, '@')
-        rr, cc = dirs[char]
-        if maze[rr + r][cc + c] == '.':
+        r, c = lib.grid_find(maze, '@')
+        rr, cc = lib.DIRS_ARROWS[char]
+        if maze[rr+r][cc+c] == '.':
+            maze[r+rr][c+cc] = '@'
             maze[r][c] = '.'
-            r += rr
-            c += cc
-            maze[r][c] = '@'
-        elif maze[rr + r][cc + c] == 'O':
+        elif maze[rr+r][cc+c] == 'O':
             maze = move_box(maze, char)
-        elif maze[rr + r][cc + c] == '#':
-            r += rr
-            c += cc
-        else:
-            print(f"Error: {maze[rr + r][cc + c]}")
 
-    ans = 0
-    for row, line in enumerate(maze):
-        for col, char in enumerate(line):
-            if char == 'O':
-                ans += row * 100 + col
-    return ans
+    return sum(row * 100 + col for row, line in enumerate(maze) for col, char in enumerate(line) if char == 'O')
 
 
 def gold(lines: list[str]) -> int:
     '''Solves the gold problem'''
+    @grid_rotation_wrapper
     def move_box(maze: list[str], dirr: str) -> None:
-        def pair(maze: list[str], point: tuple[int, int, str]) -> tuple[int,int]:
-            '''Returns point related to the matched box'''
+        def pair(maze: list[str], point: tuple[int, int, str]) -> set[tuple[int,int,str]]:
             r, c = point[0], point[1]
-            match dirr:
-                case '^':
-                    if maze[r][c] == '[':
-                        return(r - 1, c, ']')
-                    else:
-                        return(r + 1, c, '[')
-                case 'v':
-                    if maze[r][c] == '[':
-                        return(r + 1, c, ']')
-                    else:
-                        return(r - 1, c, '[')
-                case '>':
-                    if maze[r][c] == '[':
-                        return(r, c - 1, ']')
-                    else:
-                        return(r, c + 1, '[')
-                case '<':
-                    if maze[r][c] == '[':
-                        return(r, c + 1, ']')
-                    else:
-                        return(r, c - 1, '[')
-            return None # should never happen
-        match dirr:
-            case '^':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case 'v':
-                maze = rotate_box_right(maze)
-            case '>':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case '<':
-                pass
+            rr, cc = lib.DIRS_ARROWS[dirr]
+            points = set([(r, c, maze[r][c])])
 
-        rrr, ccc = find_robot(maze, '@')
-        boxes = set()
-        boxes.add((rrr, ccc - 1, maze[rrr][ccc-1]))
-        boxes.add(pair(maze, (rrr, ccc - 1)))
-        move = True
+            if dirr in '^v':
+                if maze[r][c] == ']':
+                    points.add((r - rr, c - cc, maze[r - rr][c - cc]))
+                else:
+                    points.add((r + rr, c + cc, maze[r + rr][c + cc]))
+            else:
+                if maze[r][c] == '[':
+                    points.add((r - rr, c - cc, maze[r - rr][c - cc]))
+                else:
+                    points.add((r + rr, c + cc, maze[r + rr][c + cc]))
+            return points
 
-        while move:
-            before = len(boxes)
-            neighbors = set()
-            for box in boxes:
-                r, c, _ = box
-                match maze[r][c - 1]:
-                    case '[' | ']':
-                        neighbors.add((r, c - 1, maze[r][c - 1]))
-                        neighbors.add(pair(maze, (r, c - 1)))
-                    case '#':
-                        move = False
-                    case '.':
-                        r += 0 # idk why pass is not working
-            boxes = boxes | neighbors
-            if before == len(boxes):
-                break
+        robot = lib.grid_find(maze, '@')
+        seen = set()
+        boxes = pair(maze, (robot[0], robot[1] - 1))
 
-        if move:
-            for r, c, _ in boxes:
-                maze[r][c] = '.'
-            for r, c, char in boxes:
-                maze[r][c-1] = char
-            maze[rrr][ccc] = '.'
-            maze[rrr][ccc-1] = '@'
+        while boxes:
+            poped = boxes.pop()
+            if poped in seen:
+                continue
+            seen.add(poped)
+            r, c, _ = poped
+            if maze[r][c - 1] == '#':
+                return maze
+            if maze[r][c - 1] != '.':
+                boxes |= pair(maze, (r, c - 1))
 
-
-        match dirr:
-            case '^':
-                maze = rotate_box_right(maze)
-            case 'v':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case '>':
-                maze = rotate_box_right(maze)
-                maze = rotate_box_right(maze)
-            case '<':
-                pass
+        for r, c, _ in seen:
+            maze[r][c] = '.'
+        for r, c, char in seen:
+            maze[r][c-1] = char
+        maze[robot[0]][robot[1] - 1] = '@'
+        maze[robot[0]][robot[1]] = '.'
         return maze
+
     temp, moves = parse_data(lines)
-    maze = []
-    for line in temp[0]:
-        buffer = ''
-        for char in line:
-            match char:
-                case '@':
-                    buffer += '@.'
-                case '#':
-                    buffer += '##'
-                case 'O':
-                    buffer += '[]'
-                case '.':
-                    buffer += '..'
-        maze.append(list(buffer))
-    moves = ''.join(moves)
-    dirs = {
-        '<': (0, -1),
-        '>': (0, 1),
-        '^': (-1, 0),
-        'v': (1, 0)
+    char_map = {
+        '@': '@.',
+        '#': '##',
+        'O': '[]',
+        '.': '..'
     }
+    maze = []
+
+    for line in temp[0]:
+        maze.append(list(''.join(char_map[char] for char in line)))
+    moves = ''.join(moves)
 
     for char in moves:
-        r, c = find_robot(maze, '@')
-        rr, cc = dirs[char]
+        r, c = lib.grid_find(maze, '@')
+        rr, cc = lib.DIRS_ARROWS[char]
 
-        if maze[rr + r][cc + c] == '.':
+        if maze[r+rr][c+cc] == '.':
             maze[r][c] = '.'
-            r += rr
-            c += cc
-            maze[r][c] = '@'
+            maze[r+rr][c+cc] = '@'
         elif maze[rr + r][cc + c] in '[]':
             maze = move_box(maze, char)
-        elif maze[rr + r][cc + c] == '#':
-            r += rr
-            c += cc
-        else:
-            print(f"Error: {maze[rr + r][cc + c]}")
 
-    print(f'dir {char}')
-    for line in maze:
-        print(''.join(line))
-    print()
-
-    ans = 0
-    for row, line in enumerate(maze):
-        for col, char in enumerate(line):
-            if char == '[':
-                ans += row * 100 + col
-    return ans
+    return sum(row * 100 + col for row, line in enumerate(maze) for col, char in enumerate(line) if char == '[')
 
 
 def parse_args():
