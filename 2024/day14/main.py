@@ -3,6 +3,7 @@ import sys
 import os
 import re
 from functools import reduce
+import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from lib import lib
@@ -56,29 +57,27 @@ def silver(lines: list[str], size) -> int:
 
 def gold(lines: list[str], size) -> int:
     '''Solves the gold problem'''
-    def count_connections(nodes):
-        nodes = 0
-        for x, y in positions:
-            for xx, cc in lib.DIRS:
-                if (x+xx, y+cc) in positions:
-                    nodes += 1
-        return nodes
-
     data = parse_data(lines)
-    max_var = (0, 0)
-    for iteration in range(1, size[0] * size[1]):
-        positions = set()
+
+    row_var = [np.var([d[0] for d in data])]
+    for _ in range(size[0]):
         for r in data:
             r[0] = (r[0] + r[2]) % size[0]
+        row_var.append(np.var([d[0] for d in data]))
+
+    col_var = [np.var([d[1] for d in data])]
+    for _ in range(size[1]):
+        for r in data:
             r[1] = (r[1] + r[3]) % size[1]
-            positions.add((r[0], r[1]))
+        col_var.append(np.var([d[1] for d in data]))
 
-        nodes = count_connections(positions)
-
-        if nodes > max_var[1]:
-            max_var = (iteration, nodes)
-
-    return max_var[0]
+    row_min = row_var.index(min(row_var))
+    col_min = col_var.index(min(col_var))
+    # result % size[0] == row_min
+    # result % size[1] == col_min
+    for i in range(size[0] * size[1]):
+        if i % size[0] == row_min and i % size[1] == col_min:
+            return i
 
 
 def parse_args():
