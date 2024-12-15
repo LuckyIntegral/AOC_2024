@@ -4,6 +4,18 @@ DIRS_8 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 DIRS_PATTERN_SEARCH = [(0, 1), (1, 1), (1, 0), (1, -1)]
 DIRS_ARROWS = {'<':(0, -1), '>':(0, 1), '^':(-1, 0), 'v':(1, 0)}
 
+
+# at this point i started thinking about a Grid class
+def grid_size(data: list[str]) -> tuple[int, int]:
+    '''Returns the size of the grid (shape)'''
+    return len(data), len(data[0])
+
+
+def grid_in(data: list[str], row: int, col: int) -> bool:
+    '''Checks if a point is in the grid'''
+    return 0 <= row < len(data) and 0 <= col < len(data[0])
+
+
 def grid_find(maze: list[str], to_find: str, find_all: bool = False) -> list[tuple[int, int]] | tuple[int, int]:
     '''Finds the first or all instances of a character in a grid
 
