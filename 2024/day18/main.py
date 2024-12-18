@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import heapq
+from collections import deque
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from lib import lib
@@ -35,9 +36,7 @@ def silver(lines: list[str], size) -> int:
     '''Solves the silver problem'''
     data = parse_data(lines)
     maze = [['.' for _ in range(size[0] + 1)] for _ in range(size[1] + 1)]
-    # for x, y in data:
-    for i in range(size[2]):
-        x, y = data[i]
+    for x, y in data[:size[2]]:
         maze[x][y] = '#'
     start = (0, 0)
     end = (size[0], size[1])
@@ -53,9 +52,8 @@ def silver(lines: list[str], size) -> int:
     }
 
     while heap:
-        # print(heap)
         steps, (x, y), dr = heapq.heappop(heap)
-        if not (0 <= x < len(maze) and 0 <= y < len(maze[0])):
+        if not lib.grid_in(maze, x, y):
             continue
         if visited[x][y] or maze[x][y] == '#':
             continue
@@ -73,47 +71,40 @@ def silver(lines: list[str], size) -> int:
 
 def gold(lines: list[str], size) -> int:
     '''Solves the gold problem'''
-    def djikstra(maze, start, end):
+    def dfs(maze, start, end):
         visited = [[False for _ in range(len(maze[0]))] for _ in range(len(maze))]
-        heap = [(0, start)]
-        heapq.heapify(heap)
-        directions = {
-            'U': (-1, 0),
-            'D': (1, 0),
-            'L': (0, -1),
-            'R': (0, 1)
-        }
+        dq = deque([(start)])
 
-        while heap:
-            steps, (x, y) = heapq.heappop(heap)
-            if not (0 <= x < len(maze) and 0 <= y < len(maze[0])):
+        while dq:
+            x, y = dq.popleft()
+            if not lib.grid_in(maze, x, y):
                 continue
             if visited[x][y] or maze[x][y] == '#':
                 continue
             visited[x][y] = True
-            if (x, y) == end:
-                return steps
-            for k, v in directions.items():
-                heapq.heappush(heap, (steps + 1, (x + v[0], y + v[1])))
+            if visited[end[0]][end[1]]:
+                return True
+            for xx, yy in lib.DIRS:
+                dq.appendleft((x + xx, y + yy))
 
-        return -1
+        return False
+
     data = parse_data(lines)
     maze = [['.' for _ in range(size[0] + 1)] for _ in range(size[1] + 1)]
 
-    ans = 0
     for x, y in data[:size[2]]:
         maze[x][y] = '#'
-        ans += 1
     start = (0, 0)
     end = (size[0], size[1])
 
+    ans = size[2]
     for x, y in data[size[2]:]:
         maze[x][y] = '#'
-        if djikstra(maze, start, end) == -1:
+        if not dfs(maze, start, end):
             break
         ans += 1
 
-    return data[ans]
+    return f'{data[ans][0]},{data[ans][1]}'
 
 
 def parse_args():
