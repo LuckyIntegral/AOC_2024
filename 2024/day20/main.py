@@ -1,42 +1,14 @@
 import argparse
 import sys
 import os
-from collections import defaultdict
+from functools import cache
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from lib import lib
 
 INPUT_FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
 TEST_FILE = os.path.join(os.path.dirname(__file__), 'test.txt')
-
-
-import heapq
-
-def grid_djikstra(
-    grid: list[str],
-    start: tuple[int, int],
-    end: tuple[int, int],
-    surface: list[str],
-    calculate_cost: callable = lambda grid, cost, path: cost+1
-) -> int:
-    '''Applies Djikstra algorithm for the grid'''
-    size = lib.grid_size(grid)
-    visited = [[False] * size[1] for _ in range(size[0])]
-    heap = [(0, [(start, 'Init point')])]
-
-    while heap:
-        steps, path = heapq.heappop(heap)
-        (row, col), _ = path[-1]
-        if visited[row][col] or grid[row][col] not in surface:
-            continue
-        visited[row][col] = True
-        if (row, col) == end:
-            return steps, path
-        for key, (drow, dcol) in lib.DIRS_CHARS.items():
-            nxt = path+[((row+drow, col+dcol), key)]
-            heapq.heappush(heap, (calculate_cost(grid, steps, nxt), nxt))
-
-    return -1, []
 
 
 def content() -> list[str]:
@@ -60,34 +32,32 @@ def parse_data(lines: list[str]) -> any:
     return res
 
 
-def silver(lines: list[str]) -> int:
+def silver(lines: list[str], limit: int) -> int:
     '''Solves the silver problem'''
     grid = parse_data(lines)
-    cost, path = grid_djikstra(grid, lib.grid_find(grid, 'S'), lib.grid_find(grid, 'E'), '.ES')
+    cost, path = lib.grid_djikstra(grid, lib.grid_find(grid, 'S'), lib.grid_find(grid, 'E'), '.ES')
     cache = {}
 
     for node, cost_to_end in zip(path, range(cost, -1, -1)):
         cache[node[0]] = cost_to_end, cost - cost_to_end
 
-    saved = defaultdict(int)
+    ans = 0
     for (x, y), _ in path:
         for dx, dy in lib.DIRS:
             node = (x + dx, y + dy)
             node2 = (x + dx + dx, y + dy + dy)
-            if grid[node[0]][node[1]] == '#' and lib.grid_in(grid, *node2):
-                if node2 in cache.keys():
+            if grid[node[0]][node[1]] == '#' and lib.grid_in(grid, *node2)\
+                and grid[node2[0]][node2[1]] != '#':
                     new_cost = cache[(x, y)][1] + cache[node2][0] + 2
-                    if cost - new_cost >= 100:
-                        saved[cost - new_cost] += 1
+                    if cost - new_cost >= limit:
+                        ans += 1
+    return ans
 
-    return sum(v for v in saved.values())
 
-from functools import cache
-def gold(lines: list[str]) -> int:
+def gold(lines: list[str], limit: int) -> int:
     '''Solves the gold problem'''
     @cache
     def dfs(node: tuple[int, int], deep: int) -> set[tuple[int,int]]:
-        '''from - to - min in range steps cached bfs'''
         if not lib.grid_in(grid, *node) or deep == 0:
             return set()
 
@@ -101,27 +71,20 @@ def gold(lines: list[str]) -> int:
         return seen
 
     grid = parse_data(lines)
-    cost, path = grid_djikstra(grid, lib.grid_find(grid, 'S'), lib.grid_find(grid, 'E'), '.ES')
+    cost, path = lib.grid_djikstra(grid, lib.grid_find(grid, 'S'), lib.grid_find(grid, 'E'), '.ES')
     dj_cache = {}
 
     for node, cost_to_end in zip(path, range(cost, -1, -1)):
         dj_cache[node[0]] = cost_to_end, cost - cost_to_end
 
-    saved = defaultdict(int)
+    ans = 0
     for node, _ in path:
-        to_check = dfs(node, 21) # i hope it will be cached
-
-        for nxt in to_check:
+        for nxt in dfs(node, 21):
             mnh = abs(node[0] - nxt[0]) + abs(node[1] - nxt[1])
-
-            assert nxt in dj_cache and mnh <= 20
-
             new_cost = dj_cache[node][1] + dj_cache[nxt][0] + mnh
-
-            if cost - new_cost >= 100:
-                saved[cost - new_cost] += 1
-
-    return sum(v for v in saved.values())
+            if cost - new_cost >= limit:
+                ans += 1
+    return ans
 
 
 def parse_args():
@@ -140,12 +103,12 @@ def main():
     '''Parses the input and solves the two problems'''
     lines, test = content()
     options = parse_args()
-    print(f"Silver test: {silver(test)}")
-    print(f"Gold test:   {gold(test)}")
+    print(f"Silver test: {silver(test, 0)}")
+    print(f"Gold test:   {gold(test, 0)}")
     if options.debug:
         return
-    print(f"Silver:      {silver(lines)}")
-    print(f"Gold:        {gold(lines)}")
+    print(f"Silver:      {silver(lines, 100)}")
+    print(f"Gold:        {gold(lines, 100)}")
 
 
 if __name__ == "__main__":

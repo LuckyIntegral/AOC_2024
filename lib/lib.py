@@ -1,8 +1,14 @@
+import heapq
 
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRS_8 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 DIRS_PATTERN_SEARCH = [(0, 1), (1, 1), (1, 0), (1, -1)]
+
 DIRS_ARROWS = {'<':(0, -1), '>':(0, 1), '^':(-1, 0), 'v':(1, 0)}
+DIRS_OPPOSITE_ARROWS = {'<': '>', '>': '<', 'v': '^', '^': 'v'}
+
+DIRS_CHARS = {'U':(-1, 0), 'D':(1, 0), 'L':(0, -1), 'R':(0, 1)}
+DIRS_OPPOSITE_CHARS = {'U': 'D', 'D': 'U', 'L': 'R', 'R': 'L'}
 
 
 # at this point i started thinking about a Grid class
@@ -14,6 +20,33 @@ def grid_size(data: list[str]) -> tuple[int, int]:
 def grid_in(data: list[str], row: int, col: int) -> bool:
     '''Checks if a point is in the grid'''
     return 0 <= row < len(data) and 0 <= col < len(data[0])
+
+
+def grid_djikstra(
+    grid: list[str],
+    start: tuple[int, int],
+    end: tuple[int, int],
+    surface: list[str],
+    calculate_cost: callable = lambda grid, cost, path: cost+1
+) -> int:
+    '''Applies Djikstra algorithm for the grid'''
+    size = grid_size(grid)
+    visited = [[False] * size[1] for _ in range(size[0])]
+    heap = [(0, [(start, 'Init point')])]
+
+    while heap:
+        steps, path = heapq.heappop(heap)
+        (row, col), _ = path[-1]
+        if visited[row][col] or grid[row][col] not in surface:
+            continue
+        visited[row][col] = True
+        if (row, col) == end:
+            return steps, path
+        for key, (drow, dcol) in DIRS_CHARS.items():
+            nxt = path+[((row+drow, col+dcol), key)]
+            heapq.heappush(heap, (calculate_cost(grid, steps, nxt), nxt))
+
+    return -1, []
 
 
 def grid_find(maze: list[str], to_find: str, find_all: bool = False) -> list[tuple[int, int]] | tuple[int, int]:
