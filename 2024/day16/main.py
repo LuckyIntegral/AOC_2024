@@ -26,8 +26,14 @@ def parse_data(lines: list[str]) -> any:
     '''Parses the data'''
     res = []
     for line in lines:
-        res.append(line)
+        res.append(list(line))
     return res
+
+
+def custom_cost(_, cost, path):
+    if path[-1][-1] == path[-2][-1]:
+        return cost + 1
+    return cost + 1001
 
 
 def silver(lines: list[str]) -> int:
@@ -35,115 +41,49 @@ def silver(lines: list[str]) -> int:
     data = parse_data(lines)
     start = lib.grid_find(data, 'S')
     finish = lib.grid_find(data, 'E')
-    visited = [[False for _ in range(len(data[0]))] for _ in range(len(data))]
-    queue = [(start, 0, 'U')]
-    directions = {
-        'U': (-1, 0),
-        'D': (1, 0),
-        'L': (0, -1),
-        'R': (0, 1)
-    }
-
-    while queue:
-        (x, y), steps, dr = queue.pop(0)
-        if visited[x][y] or data[x][y] == '#':
-            continue
-        visited[x][y] = True
-        if (x, y) == finish:
-            return steps + 1000 # small feature
-        for k, v in directions.items():
-            if k == dr:
-                queue.append(((x + v[0], y + v[1]), steps + 1, k))
-            else:
-                queue.append(((x + v[0], y + v[1]), steps + 1001, k))
-        queue = sorted(queue, key=lambda x: x[1])
-
-    return -1
+    return lib.grid_djikstra(lines, start, finish, '.SE', custom_cost)[0]
 
 
 def gold(lines: list[str]) -> int:
     '''Solves the gold problem'''
-    def after_corners(data, path):
-        corners = set()
+    def corners(path):
+        to_check = set()
         prev = path[0][-1]
-        for (x, y, d) in path:
-            if d != prev:
-                corners.add((x, y))
-            prev = d
-        return corners
+
+        for (row, col), char in path:
+            if char != prev:
+                to_check.add((row, col))
+            prev = char
+        return to_check
+
     data = parse_data(lines)
     start = lib.grid_find(data, 'S')
     finish = lib.grid_find(data, 'E')
-    visited = [[False for _ in range(len(data[0]))] for _ in range(len(data))]
-    queue = [(start, 1000, 'U', [[start[0], start[1], 'U']])]
-    directions = {
-        'U': (-1, 0),
-        'R': (0, 1),
-        'D': (1, 0),
-        'L': (0, -1)
-    }
-    opposite = {
-        'U': 'D',
-        'D': 'U',
-        'L': 'R',
-        'R': 'L'
-    }
-    pathes = []
-    best_cost = -1
 
-    while queue:
-        (x, y), steps, dr, path = queue.pop(0)
-        if visited[x][y] or data[x][y] == '#':
-            continue
-        visited[x][y] = True
-        if (x, y) == finish:
-            best_cost = steps
-            pathes.append(path)
-            break
-        for k, v in directions.items():
-            if k == dr:
-                queue.append(((x + v[0], y + v[1]), steps + 1, k, path + [[x + v[0], y + v[1], k]]))
-            elif k != opposite[dr]:
-                queue.append(((x + v[0], y + v[1]), steps + 1001, k, path + [[x + v[0], y + v[1], k]]))
-        queue = sorted(queue, key=lambda x: x[1])
+    best_cost, path = lib.grid_djikstra(data, start, finish, '.SE', custom_cost)
+    pathes = [path]
 
-    corners = after_corners(data, path)
+    to_check = corners(path)
+
     seen = set()
-    data = [list(row) for row in data]
-    i = 0
-    while corners:
-        xx, yy = corners.pop()
+    while to_check:
+        xx, yy = to_check.pop()
         if (xx, yy) in seen:
             continue
-
         seen.add((xx, yy))
-        visited = [[False for _ in range(len(data[0]))] for _ in range(len(data))]
-        data[xx][yy] = '#'
-        queue = [(start, 1000, 'U', [[start[0], start[1], 'U']])]
 
-        while queue:
-            (x, y), steps, dr, path = queue.pop(0)
-            if visited[x][y] or data[x][y] == '#':
-                continue
-            visited[x][y] = True
-            if (x, y) == finish:
-                if steps == best_cost:
-                    print('another found')
-                    pathes.append(path)
-                break
-            for k, v in directions.items():
-                if k == dr:
-                    queue.append(((x + v[0], y + v[1]), steps + 1, k, path + [[x + v[0], y + v[1], k]]))
-                elif k != opposite[dr]:
-                    queue.append(((x + v[0], y + v[1]), steps + 1001, k, path + [[x + v[0], y + v[1], k]]))
-            queue = sorted(queue, key=lambda x: x[1])
+        data[xx][yy] = '#'
+
+        cost, path = lib.grid_djikstra(data, start, finish, '.SE', custom_cost)
+        if cost == best_cost:
+            pathes.append(path)
+            to_check |= corners(path)
 
         data[xx][yy] = '.'
-        corners |= after_corners(data, path)
 
     squares = set()
     for path in pathes:
-        for x, y, _ in path:
+        for (x, y), _ in path:
             squares.add((x, y))
 
     return len(squares)
