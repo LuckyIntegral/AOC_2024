@@ -2,7 +2,6 @@ import argparse
 import sys
 import os
 import re
-from functools import cache
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -32,85 +31,95 @@ def parse_data(lines: list[str]) -> any:
         res.append(line)
     return res
 
-def find_first_robot(cmd):
-    def ff(pos, char):
-        n_keypad = [
-            ['7', '8', '9'],
-            ['4', '5', '6'],
-            ['1', '2', '3'],
-            [' ', '0', 'A']
-        ]
-        _, path = lib.grid_djikstra(n_keypad, pos, lib.grid_find(n_keypad, char), '0123456789A', annotations=lib.DIRS_ARROWS)
-        last = path[-1][0]
-        path = [p[-1] for p in path[1:]]
-        valid = []
-        forb = lib.grid_find(n_keypad, ' ')
-        pathes = [list(sorted(path))] + [list(reversed(sorted(path)))]
-        for perm in pathes:
-            p = pos
-            for char in perm:
-                dr = lib.DIRS_ARROWS[char]
-                p = p[0] + dr[0], p[1] + dr[1]
-                if p == forb:
-                    break
-            else:
-                valid.append(''.join(perm) + 'A')
-
-        return last, list(set(valid))
-    pos = (3, 2)
-    moves = []
-    for char in cmd:
-        pos, buff = ff(pos, char)
-        moves = combs(moves, buff)
-    return moves
-
 
 def combs(first, second):
     if first:
-        res = [f + s for f in first for s in second]
-    else:
-        res = list(second)
-    mlen = min(len(s) for s in res)
-    return [lst for lst in res if len(lst) == mlen]
+        return [f + s for f in first for s in second]
+    return list(second)
 
 
-def find_path(start, to_move):
-    _, path = lib.grid_djikstra(d_keypad, start, lib.grid_find(d_keypad, to_move), 'v^<>A', annotations=lib.DIRS_ARROWS)
-    last = path[-1][0]
-    path = [p[-1] for p in path[1:]]
-    return last, path
+def find_first_robot(cmd):
+    def find_first_stage_hardcode(pos, char):
+        end = lib.grid_find(n_keypad, char)
+        drow = pos[0] - end[0]
+        dcol = pos[1] - end[1]
+        rc = '^' * abs(drow) if drow >= 0 else 'v' * abs(drow)
+        cc = '<' * abs(dcol) if dcol >= 0 else '>' * abs(dcol)
+        res = []
+        if not (pos[1] == 0 and end[0] == 3):
+            res.append(rc + cc + 'A')
+        if not (end[1] == 0 and pos[0] == 3):
+            res.append(cc + rc + 'A')
+        return end, res
+    n_keypad = [
+        ['7', '8', '9'],
+        ['4', '5', '6'],
+        ['1', '2', '3'],
+        [' ', '0', 'A']
+    ]
+    pos = (3, 2)
+    moves = []
+    for char in cmd:
+        pos, buff = find_first_stage_hardcode(pos, char)
+        moves = combs(moves, buff)
+    return list(set(moves))
 
 
 def iteration(moves):
-    pos = (0, 2)
-    res = set()
+    pos = 'A'
+    res = []
     for move in moves:
         bufff = []
         for char in move:
-            pos, buff = type(pos, char)
+            pos, buff = char, shortest[pos][char]
             bufff = combs(bufff, buff)
-        res |= set(bufff)
+        res += set(bufff)
     mlen = min([len(s) for s in res])
     res = [lst for lst in res if len(lst) == mlen]
-    return list(res)
+    return res
 
 
-def type(start, to_move):
-    last, path = find_path(start, to_move)
-    valid = []
-    forb = lib.grid_find(d_keypad, ' ')
-    pathes = [list(sorted(path))] + [list(reversed(sorted(path)))]
-    for perm in pathes:
-        p = start
-        for char in perm:
-            dr = lib.DIRS_ARROWS[char]
-            p = p[0] + dr[0], p[1] + dr[1]
-            if p == forb:
-                break
-        else:
-            valid.append(''.join(perm) + 'A')
-
-    return last, list(set(valid))
+shortest = {
+    '^': {
+        '^': ['A'],
+        'A': ['>A'],
+        '>': ['v>A'],
+        # '>': ['>vA', 'v>A'],
+        'v': ['vA'],
+        '<': ['v<A'],
+    },
+    'A': {
+        '^': ['<A'],
+        'A': ['A'],
+        '<': ['v<<A'],
+        'v': ['<vA'],
+        # 'v': ['v<A', '<vA'],
+        '>': ['vA'],
+    },
+    '<': {
+        '^': ['>^A'],
+        'A': ['>>^A'],
+        '<': ['A'],
+        'v': ['>A'],
+        '>': ['>>A'],
+    },
+    'v': {
+        '^': ['^A'],
+        'A': ['^>A'],
+        # 'A': ['^>A', '>^A'],
+        '<': ['<A'],
+        'v': ['A'],
+        '>': ['>A'],
+    },
+    '>': {
+        '^': ['<^A'],
+        # '^': ['<^A', '^<A'],
+        'A': ['^A'],
+        '<': ['<<A'],
+        'v': ['<A'],
+        '>': ['A'],
+    },
+}
 
 d_keypad = [
     [' ', '^', 'A'],
@@ -123,13 +132,13 @@ def silver(lines: list[str]) -> int:
     res = 0
 
     for cmd in data:
-        moves = find_first_robot(cmd)
-        rbt = moves
+        rbt = moves = find_first_robot(cmd)
+        print(rbt)
+
         for _ in range(3):
             rbt, moves = iteration(moves), rbt
 
         num = int(re.findall(r"(\d+)", cmd)[0])
-        print(f'{num} * {len(rbt[0])}')
         res += num * len(rbt[0])
 
     return res
@@ -142,15 +151,12 @@ def gold(lines: list[str]) -> int:
 
     for cmd in data:
         rbt = moves = find_first_robot(cmd)
-        for i in range(3):
-        # for i in range(5):
-            # print(f'iteration {i} has {len(rbt[0])} elements')
-            rbt, moves = iteration(moves), rbt
-            # print(rbt)
 
-        # print(len(rbt))
+        for _ in range(26):
+            print(_)
+            rbt, moves = iteration(moves), rbt
+
         num = int(re.findall(r"(\d+)", cmd)[0])
-        print(f'{num} * {len(rbt[0])}')
         res += num * len(rbt[0])
 
     return res
