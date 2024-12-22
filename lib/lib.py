@@ -27,8 +27,9 @@ def grid_djikstra(
     start: tuple[int, int],
     end: tuple[int, int],
     surface: list[str],
-    calculate_cost: callable = lambda grid, cost, path: cost+1
-) -> int:
+    calculate_cost: callable = lambda grid, cost, path: cost+1,
+    annotations: dict[int] = DIRS_CHARS
+) -> tuple[int, list[tuple[int, int, str]]]:
     '''Applies Djikstra algorithm for the grid'''
     size = grid_size(grid)
     visited = [[False] * size[1] for _ in range(size[0])]
@@ -37,12 +38,14 @@ def grid_djikstra(
     while heap:
         steps, path = heapq.heappop(heap)
         (row, col), _ = path[-1]
+        if not grid_in(grid, row, col):
+            continue
         if visited[row][col] or grid[row][col] not in surface:
             continue
         visited[row][col] = True
         if (row, col) == end:
             return steps, path
-        for key, (drow, dcol) in DIRS_CHARS.items():
+        for key, (drow, dcol) in annotations.items():
             nxt = path+[((row+drow, col+dcol), key)]
             heapq.heappush(heap, (calculate_cost(grid, steps, nxt), nxt))
 
