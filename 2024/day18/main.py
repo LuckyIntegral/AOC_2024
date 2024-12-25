@@ -35,44 +35,18 @@ def parse_data(lines: list[str]) -> any:
 def silver(lines: list[str], size) -> int:
     '''Solves the silver problem'''
     data = parse_data(lines)
-    maze = [['.' for _ in range(size[0] + 1)] for _ in range(size[1] + 1)]
+    maze = [['.'] * (size[0] + 1) for _ in range(size[1] + 1)]
+
     for x, y in data[:size[2]]:
         maze[x][y] = '#'
-    start = (0, 0)
-    end = (size[0], size[1])
 
-    visited = [[False for _ in range(len(maze[0]))] for _ in range(len(maze))]
-    heap = [(0, start, 'R'), (0, start, 'D')]
-    heapq.heapify(heap)
-    directions = {
-        'U': (-1, 0),
-        'D': (1, 0),
-        'L': (0, -1),
-        'R': (0, 1)
-    }
-
-    while heap:
-        steps, (x, y), dr = heapq.heappop(heap)
-        if not lib.grid_in(maze, x, y):
-            continue
-        if visited[x][y] or maze[x][y] == '#':
-            continue
-        visited[x][y] = True
-        if (x, y) == end:
-            return steps
-        for k, v in directions.items():
-            if k == dr:
-                heapq.heappush(heap, (steps + 1, (x + v[0], y + v[1]), k))
-            else:
-                heapq.heappush(heap, (steps + 1, (x + v[0], y + v[1]), k))
-
-    return -1
+    return lib.grid_djikstra(maze, (0, 0), (size[0], size[1]), '.')[0]
 
 
 def gold(lines: list[str], size) -> int:
     '''Solves the gold problem'''
     def dfs(maze, start, end):
-        visited = [[False for _ in range(len(maze[0]))] for _ in range(len(maze))]
+        visited = [[False] * len(maze[0]) for _ in range(len(maze))]
         dq = deque([(start)])
 
         while dq:
@@ -91,13 +65,13 @@ def gold(lines: list[str], size) -> int:
 
     data = parse_data(lines)
     maze = [['.' for _ in range(size[0] + 1)] for _ in range(size[1] + 1)]
-
-    for x, y in data[:size[2]]:
-        maze[x][y] = '#'
+    ans = size[2]
     start = (0, 0)
     end = (size[0], size[1])
 
-    ans = size[2]
+    for x, y in data[:size[2]]:
+        maze[x][y] = '#'
+
     for x, y in data[size[2]:]:
         maze[x][y] = '#'
         if not dfs(maze, start, end):
