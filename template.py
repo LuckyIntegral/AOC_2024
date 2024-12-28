@@ -16,29 +16,25 @@ def content() -> list[str]:
             print(f"File {file} not found")
             exit(1)
         with open(file) as f:
-            lines = f.readlines()
-        return [line.strip() for line in lines]
+            return f.read()
 
     return read_file(INPUT_FILE), read_file(TEST_FILE)
 
 
-def parse_data(lines: list[str]) -> any:
+def parse_data(content: str) -> any:
     '''Parses the data'''
-    res = []
-    for line in lines:
-        res.append(line)
-    return res
+    return content.splitlines()
 
 
-def silver(lines: list[str]) -> int:
+def silver(content: str) -> int:
     '''Solves the silver problem'''
-    data = parse_data(lines)
+    data = parse_data(content)
     return 0
 
 
-def gold(lines: list[str]) -> int:
+def gold(content: str) -> int:
     '''Solves the gold problem'''
-    data = parse_data(lines)
+    data = parse_data(content)
     return 0
 
 

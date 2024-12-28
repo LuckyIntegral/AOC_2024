@@ -1,4 +1,5 @@
 import heapq
+import re
 
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRS_8 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -11,7 +12,11 @@ DIRS_CHARS = {'U':(-1, 0), 'D':(1, 0), 'L':(0, -1), 'R':(0, 1)}
 DIRS_OPPOSITE_CHARS = {'U': 'D', 'D': 'U', 'L': 'R', 'R': 'L'}
 
 
-# at this point i started thinking about a Grid class
+def ints(line: str) -> list[int]:
+    '''Returns the integers in a line'''
+    return [int(x) for x in re.findall(r'\d+', line)]
+
+
 def grid_size(data: list[str]) -> tuple[int, int]:
     '''Returns the size of the grid (shape)'''
     return len(data), len(data[0])
