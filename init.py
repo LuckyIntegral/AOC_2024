@@ -132,6 +132,9 @@ class AdventOfCode:
 
         soup = BeautifulSoup(response.text, 'html.parser')
         pre_tags = soup.find('pre')
+        if not pre_tags:
+            print('No test cases found')
+            return ''
         return pre_tags.text
 
     def get_template_content(self) -> str:
@@ -171,9 +174,9 @@ class AdventOfCode:
             line = line.strip()
             print(line)
             if 'Silver:' in line:
-                self.silver = int(line.split()[-1])
+                self.silver = line.split()[-1]
             elif 'Gold:' in line:
-                self.golden = int(line.split()[-1])
+                self.golden = line.split()[-1]
 
     def interactive(self):
         '''Interacts with the user'''
