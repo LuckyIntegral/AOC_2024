@@ -1,5 +1,7 @@
+import argparse
 import heapq
 import re
+import os
 
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRS_8 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -148,3 +150,24 @@ def grid_dfs(
                 else:
                     res += dfs(row, col, 0, seen, direction)
     return res
+
+
+def read_file(file: str) -> list[str]:
+    '''Reads the input file and returns a string'''
+    if not os.path.exists(file):
+        print(f"File {file} not found")
+        exit(1)
+    with open(file) as f:
+        return f.read()
+
+
+def parse_args():
+    '''Parses the arguments for the script'''
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d",
+        "--debug",
+        help="run the test samples only",
+        action="store_true"
+    )
+    return parser.parse_args()
