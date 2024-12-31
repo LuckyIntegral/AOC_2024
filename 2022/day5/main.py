@@ -10,38 +10,40 @@ TEST_FILE = os.path.join(os.path.dirname(__file__), 'test.txt')
 
 def parse_data(content: str):
     '''Parses the data'''
-    return content.splitlines()
+    data = content.split('\n\n')
+    stacks = []
+    for line in lib.grid_rotate(data[0].split('\n')):
+        if line[0].isdigit():
+            stacks.append([char for char in line[1:] if char != ' '])
+    moves = []
+    for line in data[1].splitlines():
+        moves.append(lib.ints(line))
+    return stacks, moves
 
 
 def silver(content: str, debug: bool = False):
     '''Solves the silver problem'''
-    data = parse_data(content)
-    res = 0
-    for line in data:
-        r, l = line[:len(line) // 2], line[len(line) // 2:]
-        for ch in r:
-            if ch in l:
-                if ch.islower():
-                    res += ord(ch) - ord('a') + 1
-                else:
-                    res += ord(ch) - ord('A') + 26 + 1
-                break
-    return res
+    stacks, moves = parse_data(content)
+
+    for nbr, src, dest in moves:
+        for _ in range(nbr):
+            stacks[dest - 1].append(stacks[src - 1].pop())
+
+    return ''.join([st.pop() for st in stacks])
 
 
 def gold(content: str, debug: bool = False):
     '''Solves the gold problem'''
-    data = parse_data(content)
-    res = 0
-    for i in range(0, len(data), 3):
-        lines = data[i:i+3]
-        ch = (set(lines[0]) & set(lines[1]) & set(lines[2])).pop()
-        if ch.islower():
-            res += ord(ch) - ord('a') + 1
-        else:
-            res += ord(ch) - ord('A') + 26 + 1
+    stacks, moves = parse_data(content)
 
-    return res
+    for nbr, src, dest in moves:
+        buf = []
+        for _ in range(nbr):
+            buf.append(stacks[src - 1].pop())
+        for _ in range(nbr):
+            stacks[dest - 1].append(buf.pop())
+
+    return ''.join([st.pop() for st in stacks])
 
 
 def main():

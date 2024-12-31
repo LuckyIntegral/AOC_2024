@@ -10,38 +10,33 @@ TEST_FILE = os.path.join(os.path.dirname(__file__), 'test.txt')
 
 def parse_data(content: str):
     '''Parses the data'''
-    return content.splitlines()
+    return content.splitlines()[0]
 
-
+from collections import deque
 def silver(content: str, debug: bool = False):
     '''Solves the silver problem'''
     data = parse_data(content)
-    res = 0
-    for line in data:
-        r, l = line[:len(line) // 2], line[len(line) // 2:]
-        for ch in r:
-            if ch in l:
-                if ch.islower():
-                    res += ord(ch) - ord('a') + 1
-                else:
-                    res += ord(ch) - ord('A') + 26 + 1
-                break
-    return res
+    buf = deque(data[:3])
+
+    for i in range(3, len(data)):
+        buf.append(data[i])
+        if len(set(buf)) == 4:
+            return i + 1
+        buf.popleft()
+    return -1
 
 
 def gold(content: str, debug: bool = False):
     '''Solves the gold problem'''
     data = parse_data(content)
-    res = 0
-    for i in range(0, len(data), 3):
-        lines = data[i:i+3]
-        ch = (set(lines[0]) & set(lines[1]) & set(lines[2])).pop()
-        if ch.islower():
-            res += ord(ch) - ord('a') + 1
-        else:
-            res += ord(ch) - ord('A') + 26 + 1
+    buf = deque(data[:13])
 
-    return res
+    for i in range(13, len(data)):
+        buf.append(data[i])
+        if len(set(buf)) == 14:
+            return i + 1
+        buf.popleft()
+    return -1
 
 
 def main():
