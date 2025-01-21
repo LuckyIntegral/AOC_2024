@@ -9,6 +9,7 @@ __pycache__/
 # Custom data
 input.txt
 test.txt
+node_modules
 
 # Distribution / packaging
 .Python

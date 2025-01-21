@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import requests
 import argparse
 import time
-import sys
 import os
 
 
@@ -13,13 +12,16 @@ URI_SUBMIT = 'https://adventofcode.com/{year}/day/{day}/answer'
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
 LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(LOCAL_PATH, '.cache')
+EXECUTABLES = {'py': 'python3.11', 'js': 'node'}
 
 
 class AdventOfCode:
-    def __init__(self, year: int, day: int, session_id: str):
+    def __init__(self, year: int, day: int, lang: str, session_id: str):
         '''Initializes the class with the year and day'''
         self.year = year
         self.day = day
+        self.lang = lang
+        self.executable = EXECUTABLES[lang]
         self.cookies = session_id
         self.start = time.time()
         self.submissions = []
@@ -139,7 +141,7 @@ class AdventOfCode:
 
     def get_template_content(self) -> str:
         '''Returns the template file for the given day'''
-        with open('template.py') as f:
+        with open(f'template.{self.lang}') as f:
             template = f.read()
         return template
 
@@ -158,7 +160,7 @@ class AdventOfCode:
 
         os.makedirs(f'{self.year}/day{self.day}', exist_ok=True)
 
-        self.optional_write(f'{self.year}/day{self.day}/main.py', template)
+        self.optional_write(f'{self.year}/day{self.day}/main.{self.lang}', template)
         self.optional_write(f'{self.year}/day{self.day}/input.txt', input_file)
         self.optional_write(f'{self.year}/day{self.day}/test.txt', test_file)
 
@@ -166,12 +168,12 @@ class AdventOfCode:
         '''Runs the subprocess
         debug: runs the test samples only
         '''
-        command = f'{sys.executable} {self.year}/day{self.day}/main.py'
+        command = f'{self.executable} {self.year}/day{self.day}/main.{self.lang}'
         if debug:
             command += ' --debug'
         output = os.popen(command).readlines()
         for line in output:
-            line = line.strip()
+            line = line.strip('\n')
             print(line)
             if 'Silver:' in line:
                 self.silver = line.split()[-1]
@@ -180,12 +182,16 @@ class AdventOfCode:
 
     def interactive(self):
         '''Interacts with the user'''
+        print('Advent of Code')
+        print(f'https://adventofcode.com/{self.year}/day/{self.day}')
+        print()
         print('Options:')
         print('p: print the solution')
         print('d: debug the solution (run the test samples only)')
         print('s: submit the first solution (silver star)')
         print('g: submit the second solution (golden star)')
         print('c: clear the screen')
+        print()
 
         try:
             while True:
@@ -227,6 +233,7 @@ def validate_env():
 def parse_args():
     '''Parses the arguments'''
     parser = argparse.ArgumentParser()
+    parser.add_argument('lang', choices=['py', 'js'], help='The template language')
     parser.add_argument('year', type=int, help='The year to run')
     parser.add_argument('day', type=int, help='The day to run')
     return parser.parse_args()
@@ -236,7 +243,7 @@ def main():
     '''Parses the input and creates a template'''
     validate_env()
     args = parse_args()
-    aoc = AdventOfCode(args.year, args.day, os.getenv('SESSION'))
+    aoc = AdventOfCode(args.year, args.day, args.lang, os.getenv('SESSION'))
     aoc.generate_template()
     aoc.interactive()
 
