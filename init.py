@@ -182,15 +182,19 @@ class AdventOfCode:
 
     def interactive(self):
         '''Interacts with the user'''
+        def print_help():
+            print('Options:')
+            print('p: print the solution')
+            print('d: debug the solution (run the test samples only)')
+            print('s: submit the first solution (silver star)')
+            print('g: submit the second solution (golden star)')
+            print('c: clear the screen')
+            print('h: print the menu')
+
         print('Advent of Code')
         print(f'https://adventofcode.com/{self.year}/day/{self.day}')
         print()
-        print('Options:')
-        print('p: print the solution')
-        print('d: debug the solution (run the test samples only)')
-        print('s: submit the first solution (silver star)')
-        print('g: submit the second solution (golden star)')
-        print('c: clear the screen')
+        print_help()
         print()
 
         try:
@@ -212,6 +216,9 @@ class AdventOfCode:
                     self.run_solution(debug=True)
                 elif user == 'c':
                     os.system('clear')
+                elif user == 'h':
+                    print_help()
+                    print()
                 else:
                     print('Invalid option')
         except EOFError:
