@@ -2,6 +2,7 @@ import argparse
 import heapq
 import re
 import os
+from typing import Union
 
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRS_8 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -59,7 +60,7 @@ def grid_djikstra(
     return -1, []
 
 
-def grid_find(maze: list[str], to_find: str, find_all: bool = False) -> list[tuple[int, int]] | tuple[int, int]:
+def grid_find(maze: list[str], to_find: str, find_all: bool = False) -> Union[list[tuple[int, int]], tuple[int, int]]:
     '''Finds the first or all instances of a character in a grid
 
     Args:
@@ -68,7 +69,7 @@ def grid_find(maze: list[str], to_find: str, find_all: bool = False) -> list[tup
         find_all (bool): whether to return all instances or the first
 
     Returns:
-        list[tuple[int, int]] | tuple[int, int]: the points of the character
+        Union(list[tuple[int, int]], tuple[int, int]): the points of the character
     '''
     res = []
     for row, line in enumerate(maze):
@@ -80,7 +81,7 @@ def grid_find(maze: list[str], to_find: str, find_all: bool = False) -> list[tup
     return res
 
 
-def grid_rotate(data: list[str] | list[list[str]]) -> list[list[str]]:
+def grid_rotate(data: Union[list[str], list[list[str]]]) -> list[list[str]]:
     '''Rotates the grid 90 degrees clockwise
 
     Args:
