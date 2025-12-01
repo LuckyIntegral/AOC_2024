@@ -15,20 +15,13 @@ def parse_data(content: str):
 def silver(content: str, debug: bool = False):
     '''Solves the silver problem'''
     data = parse_data(content)
-    curr = 50
-    count = 0
+    hist = [50]
 
     for line in data:
-        d = line[0]
-        c = int(line[1:])
-        if d == 'L':
-            curr -= c
-        else:
-            curr += c
-        curr %= 100
-        if curr == 0:
-            count += 1
-    return count
+        step = -1 if line[0] == 'L' else 1
+        dist = step * int(line[1:])
+        hist.append(hist[-1] + dist)
+    return sum(1 for h in hist if h % 100 == 0)
 
 
 def gold(content: str, debug: bool = False):
@@ -38,13 +31,9 @@ def gold(content: str, debug: bool = False):
 
     for line in data:
         step = -1 if line[0] == 'L' else 1
-        for i in range(hist[-1] + step, hist[-1] + int(line[1:]) * step + step, step):
-            hist += [i]
-    res = 0
-    for i in hist:
-        if i % 100 == 0:
-            res += 1
-    return res
+        dist = step * int(line[1:])
+        hist.extend(range(hist[-1] + step, hist[-1] + dist + step, step))
+    return sum(1 for h in hist if h % 100 == 0)
 
 
 def main():
