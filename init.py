@@ -12,7 +12,7 @@ URI_SUBMIT = 'https://adventofcode.com/{year}/day/{day}/answer'
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
 LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(LOCAL_PATH, '.cache')
-EXECUTABLES = {'py': 'python3.11', 'js': 'node'}
+EXECUTABLES = {'py': 'python3', 'js': 'node'}
 
 
 class AdventOfCode:
