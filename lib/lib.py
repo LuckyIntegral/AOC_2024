@@ -2,7 +2,7 @@ import argparse
 import heapq
 import re
 import os
-from typing import Union
+from typing import Generator, Union
 
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRS_8 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -13,6 +13,23 @@ DIRS_OPPOSITE_ARROWS = {'<': '>', '>': '<', 'v': '^', '^': 'v'}
 
 DIRS_CHARS = {'U':(-1, 0), 'D':(1, 0), 'L':(0, -1), 'R':(0, 1)}
 DIRS_OPPOSITE_CHARS = {'U': 'D', 'D': 'U', 'L': 'R', 'R': 'L'}
+
+
+def grid_iter(data: list[str]) -> Generator[tuple[int, int, str], None, None]:
+    '''Iterates over the grid yielding row, col, value'''
+    for row in range(len(data)):
+        for col in range(len(data[0])):
+            yield row, col, data[row][col]
+
+
+def grid_neighbors(data: list[str], row: int, col: int, directions: list[tuple[int, int]] = DIRS) -> list[tuple[int, int]]:
+    '''Returns the neighbors of a point in the grid'''
+    neighbors = []
+    for dr, dc in directions:
+        nr, nc = row + dr, col + dc
+        if grid_in(data, nr, nc):
+            neighbors.append((nr, nc))
+    return neighbors
 
 
 def ints(line: str) -> list[int]:
