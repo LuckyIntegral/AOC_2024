@@ -13,13 +13,13 @@ def parse_data(content: str):
     return content.splitlines()
 
 
-def silver(content: str, debug: bool = False):
+def silver(content: str):
     '''Solves the silver problem'''
     data = parse_data(content)
     return 0
 
 
-def gold(content: str, debug: bool = False):
+def gold(content: str):
     '''Solves the gold problem'''
     data = parse_data(content)
     return 0
@@ -30,8 +30,8 @@ def main():
     options = lib.parse_args()
 
     content = lib.read_file(TEST_FILE)
-    print(f"Silver test: {silver(content, debug=True)}")
-    print(f"Gold test:   {gold(content, debug=True)}")
+    print(f"Silver test: {silver(content)}")
+    print(f"Gold test:   {gold(content)}")
 
     if not options.debug:
         content = lib.read_file(INPUT_FILE)
