@@ -23,7 +23,7 @@ def silver(content: str, debug: bool = False):
         if data[row][col] != '@':
             continue
         nbrs = 0
-        for ni, nj in lib.grid_neighbors(data, row, col, lib.DIRS_8):
+        for ni, nj, _ in lib.grid_neighbors(data, row, col, lib.DIRS_8):
             if lib.grid_in(data, ni, nj):
                 if data[ni][nj] == '@':
                     nbrs += 1
@@ -46,7 +46,7 @@ def gold(content: str, debug: bool = False):
             if data[row][col] != '@':
                 continue
             nbrs = 0
-            for ni, nj in lib.grid_neighbors(data, row, col, lib.DIRS_8):
+            for ni, nj, _ in lib.grid_neighbors(data, row, col, lib.DIRS_8):
                 if lib.grid_in(data, ni, nj):
                     if data[ni][nj] == '@':
                         nbrs += 1

@@ -28,7 +28,7 @@ def grid_neighbors(data: list[str], row: int, col: int, directions: list[tuple[i
     for dr, dc in directions:
         nr, nc = row + dr, col + dc
         if grid_in(data, nr, nc):
-            neighbors.append((nr, nc))
+            neighbors.append((nr, nc, data[nr][nc]))
     return neighbors
 
 
