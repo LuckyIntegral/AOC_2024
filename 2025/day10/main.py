@@ -19,10 +19,7 @@ def parse_data(content: str):
 
         commands = []
         for option in line[1:-1]:
-            cmd = 0
-            for bit in map(int, option[1:-1].split(',')):
-                cmd |= 1 << bit
-            commands += [cmd]
+            commands += [list(map(int, option[1:-1].split(',')))]
 
         limits = list(map(int, line[-1][1:-1].split(',')))
         res += [(lights, commands, limits)]
@@ -52,50 +49,59 @@ def silver(content: str):
 
     for line in data:
         state, commands, _ = line
-        round = bfs(state, commands)
+        cmds = []
+        for option in commands:
+            cmd = sum(1 << bit for bit in option)
+            cmds.append(cmd)
+        round = bfs(state, cmds)
         res += round
 
     return res
 
 
+from z3 import Int, Optimize, sat
 def gold(content: str):
     '''Solves the gold problem'''
-    # def bfs(commands: list[int], limits: list[int]):
-    #     heap = [(0, tuple([0] * len(limits)))]
-    #     seen = set()
+    def list_sum(N: int, *args: list[int]) -> list[int]:
+        res = [0] * N
+        for lst in args:
+            for i in range(N):
+                res[i] += lst[i]
+        return res
 
-    #     while heap:
-    #         rounds, lims = heapq.heappop(heap)
+    def list_add(nbr: int, a: list[int]) -> list[int]:
+        return [nbr * x for x in a]
 
-    #         if lims in seen:
-    #             continue
-    #         seen.add(lims)
+    data = parse_data(content)
+    res = 0
 
-    #         if lims == tuple(limits):
-    #             return rounds
+    for line in data:
+        _, commands, limits = line
+        masked = []
+        for command in commands:
+            mask = [0] * len(limits)
+            for bit in command:
+                mask[bit] = 1
+            masked.append(mask)
 
-    #         for cmd in commands:
-    #             new_lims = list(lims)
-    #             valid = True
-    #             for i in range(len(limits)):
-    #                 if (cmd >> i) & 1:
-    #                     new_lims[i] += 1
-    #                     if new_lims[i] > limits[i]:
-    #                         valid = False
-    #                         break
-    #             if valid:
-    #                 heapq.heappush(heap, (rounds + 1, tuple(new_lims)))
+        vs = []
+        for i, command in enumerate(masked):
+            vs.append((Int(f'{chr(ord("A") + i)}'), command))
 
-    # data = parse_data(content)
-    # res = 0
+        solver = Optimize()
+        summed = list_sum(len(limits), *[list_add(a,b) for a, b in vs])
 
-    # for line in data:
-    #     _, commands, limits = line
-    #     round = bfs(commands, limits)
-    #     print(round)
-    #     res += round
+        solver.add([a >= 0 for a, _ in vs])
+        solver.add([summed[i] == limits[i] for i in range(len(limits))])
 
-    return 0
+        solver.minimize(sum(a for a, _ in vs))
+
+        assert solver.check() == sat
+
+        model = solver.model()
+        res += sum(model.eval(var).as_long() for var, _ in vs)
+
+    return res
 
 
 def main():
